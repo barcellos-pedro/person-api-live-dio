@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,7 +27,7 @@ public class PersonService {
     public MessageResponseDTO createPerson(@RequestBody PersonDTO personDTO) {
         Person personToSave = this.personMapper.toModel(personDTO);
 
-        Person savedPerson = personRepository.save(personToSave);
+        Person savedPerson = this.personRepository.save(personToSave);
         return MessageResponseDTO
                 .builder()
                 .message("Created person with ID " + savedPerson.getId())
@@ -43,7 +42,16 @@ public class PersonService {
     }
 
     public PersonDTO findById(Long id) throws PersonNotFoundException {
-        Person person = this.personRepository.findById(id).orElseThrow(() -> new PersonNotFoundException(id));
+        Person person = this.verifyIfExists(id);
         return this.personMapper.toDTO(person);
+    }
+
+    public void delete(Long id) throws PersonNotFoundException {
+        this.verifyIfExists(id);
+        this.personRepository.deleteById(id);
+    }
+
+    private Person verifyIfExists(Long id) throws PersonNotFoundException {
+        return this.personRepository.findById(id).orElseThrow(() -> new PersonNotFoundException(id));
     }
 }
